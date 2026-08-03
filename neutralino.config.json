@@ -1,0 +1,38 @@
+{
+  "applicationId": "com.example.myapp",
+  "version": "1.0.0",
+  "defaultMode": "window",
+  "documentRoot": "/resources/",
+  "url": "/",
+  "enableServer": true,
+  "enableNativeAPI": true,
+  "tokenSecurity": "one-time",
+  "logging": { "enabled": false },
+  "nativeAllowList": ["app.*", "os.*", "debug.log", "filesystem.*"],
+  "modes": {
+    "window": {
+      "title": "MyApp",
+      "width": 800,
+      "height": 600,
+      "minWidth": 400,
+      "minHeight": 300,
+      "fullScreen": false,
+      "alwaysOnTop": false,
+      "icon": "/resources/icons/appIcon.png",
+      "enableInspector": false,
+      "borderless": false,
+      "maximize": false,
+      "hidden": false,
+      "resizable": true,
+      "exitProcessOnClose": true
+    }
+  },
+  "cli": {
+    "binaryName": "MyApp",
+    "resourcesPath": "/resources/",
+    "extensionsPath": "/extensions/",
+    "clientLibrary": "/resources/js/neutralino.js",
+    "binaryVersion": "latest",
+    "clientVersion": "latest"
+  }
+}
