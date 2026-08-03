@@ -1,0 +1,65 @@
+name: Build Win7 32-bit EXE (Neutralinojs)
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-win32:
+    runs-on: windows-2019
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install neu CLI
+        run: npm install -g @neutralinojs/neu
+
+      - name: Build Neutralinojs from source (32-bit)
+        run: |
+          git clone --depth 1 https://github.com/neutralinojs/neutralinojs.git
+          cd neutralinojs
+          python scripts/bz.py --arch x86
+          copy bin\neutralino-win_x86.exe ..\neutralino-win_x86.exe
+        shell: cmd
+
+      - name: Build app resources
+        run: neu build --release
+        shell: cmd
+
+      - name: Package 32-bit EXE
+        run: |
+          mkdir dist-win32
+          copy neutralino-win_x86.exe dist-win32\MyApp.exe
+          copy dist\resources.neu dist-win32\resources.neu
+          copy neutralino.config.json dist-win32\neutralino.config.json
+          echo @echo off > dist-win32\MyApp.bat
+          echo start MyApp.exe >> dist-win32\MyApp.bat
+          powershell -Command "Compress-Archive -Path dist-win32\* -DestinationPath MyApp-Win7-x86.zip"
+        shell: cmd
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyApp-Win7-x86
+          path: MyApp-Win7-x86.zip
+
+      - name: Release (if tagged)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: MyApp-Win7-x86.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
