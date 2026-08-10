@@ -31,7 +31,7 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/neutralinojs/neutralinojs.git
           cd neutralinojs
-          python scripts/bz.py --arch x86
+          python scripts/rz.py --arch x86
           copy bin\neutralino-win_x86.exe ..\neutralino-win_x86.exe
         shell: cmd
 
