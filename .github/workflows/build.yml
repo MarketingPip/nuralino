@@ -1,65 +1,42 @@
-name: Build Win7 32-bit EXE (Neutralinojs)
+name: Build and Commit WASM
 
 on:
   push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+    branches: [ main ]
+    paths:
+      - '**.c'
+      - '**.h'
+      - 'Makefile*'
+      - 'package.json'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build-win32:
-    runs-on: windows-latest
+  build:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Emscripten
+        uses: emscripten-core/setup-emsdk@v15
+        with:
+          version: latest
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install neu CLI
-        run: npm install -g @neutralinojs/neu
-
-      - name: Build Neutralinojs from source (32-bit)
+      - name: Install dependencies & Build WASM
         run: |
-          git clone --depth 1 https://github.com/neutralinojs/neutralinojs.git
-          cd neutralinojs
-          python scripts/rz.py --arch x86
-          copy bin\neutralino-win_x86.exe ..\neutralino-win_x86.exe
-        shell: cmd
+          # Replace this with your actual build command (e.g., npm run build or make -f Makefile.wasm)
+          make -f Makefile.wasm
 
-      - name: Build app resources
-        run: neu build --release
-        shell: cmd
-
-      - name: Package 32-bit EXE
-        run: |
-          mkdir dist-win32
-          copy neutralino-win_x86.exe dist-win32\MyApp.exe
-          copy dist\resources.neu dist-win32\resources.neu
-          copy neutralino.config.json dist-win32\neutralino.config.json
-          echo @echo off > dist-win32\MyApp.bat
-          echo start MyApp.exe >> dist-win32\MyApp.bat
-          powershell -Command "Compress-Archive -Path dist-win32\* -DestinationPath MyApp-Win7-x86.zip"
-        shell: cmd
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          name: MyApp-Win7-x86
-          path: MyApp-Win7-x86.zip
-
-      - name: Release (if tagged)
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
-        with:
-          files: MyApp-Win7-x86.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          commit_message: "Auto-build WASM binaries [skip ci]"
+          file_pattern: "dist/*"
